@@ -21,7 +21,7 @@
         .catch(err => console.error('Service Worker registration failed:', err));
     }
   </script>
- <script>
+<script>
 (function() {
   const CHAT_URL = "https://www.aiget.art/mychat?api_key=CBZBJH";
   
@@ -104,8 +104,26 @@
     </div>
   `;
   document.body.appendChild(box);
+  const iframe = box.querySelector('iframe');
 
   let isMax = false, preStyles = {}, dragging = false, dragX = 0, dragY = 0, ox = 0, oy = 0;
+  let resizing = false, rDir = '', rStartX = 0, rStartY = 0, rStartW = 0, rStartH = 0;
+  const MIN_W = 300, MIN_H = 400;
+
+  box.querySelectorAll('.aiget-resizer').forEach(r => {
+    r.onmousedown = (e) => {
+      if (isMax) return;
+      resizing = true;
+      rDir = r.getAttribute('data-dir');
+      rStartX = e.clientX;
+      rStartY = e.clientY;
+      rStartW = parseInt(window.getComputedStyle(box).width);
+      rStartH = parseInt(window.getComputedStyle(box).height);
+      if (iframe) iframe.style.pointerEvents = 'none';
+      e.preventDefault();
+    };
+  });
+
   toggle.onclick = () => box.classList.toggle('open');
   document.getElementById('aigetClose').onclick = () => box.classList.remove('open');
   document.getElementById('aigetClear').onclick = () => {
@@ -164,11 +182,24 @@
     if(isMax || e.target.closest('button, #aigetDropdown')) return;
     dragging = true; dragX = e.clientX - ox; dragY = e.clientY - oy;
     head.style.cursor = 'grabbing';
+    if (iframe) iframe.style.pointerEvents = 'none';
   };
   document.onmousemove = (e) => {
-    if(dragging) { ox = e.clientX - dragX; oy = e.clientY - dragY; box.style.transform = `translate3d(${ox}px, ${oy}px, 0)`; }
+    if(dragging) { 
+      ox = e.clientX - dragX; oy = e.clientY - dragY; box.style.transform = `translate3d(${ox}px, ${oy}px, 0)`; 
+    } else if (resizing) {
+      const dx = e.clientX - rStartX;
+      const dy = e.clientY - rStartY;
+      if (rDir.includes('r')) box.style.width = Math.max(MIN_W, rStartW + dx) + 'px';
+      if (rDir.includes('b')) box.style.height = Math.max(MIN_H, rStartH + dy) + 'px';
+    }
   };
-  document.onmouseup = () => { dragging = false; head.style.cursor = 'grab'; };
+  document.onmouseup = () => { 
+    dragging = false; 
+    resizing = false; 
+    head.style.cursor = 'grab'; 
+    if (iframe) iframe.style.pointerEvents = 'auto'; 
+  };
 })();
 </script>
 </body>
