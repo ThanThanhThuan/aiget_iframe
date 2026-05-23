@@ -21,13 +21,13 @@
         .catch(err => console.error('Service Worker registration failed:', err));
     }
   </script>
-  <script>
-    (function () {
-      const CHAT_URL = "https://www.aiget.art/mychat?api_key=CBZBJH";
-
-      // Inject CSS
-      const style = document.createElement('style');
-      style.textContent = `
+ <script>
+(function() {
+  const CHAT_URL = "https://www.aiget.art/mychat?api_key=CBZBJH";
+  
+  // Inject CSS
+  const style = document.createElement('style');
+  style.textContent = `
     #aigetToggle { position: fixed; bottom: 20px; left: 20px; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; border: none; cursor: pointer; box-shadow: 0 4px 18px rgba(99,102,241,.45); z-index: 100000; font-size: 24px; transition: transform .2s; display: flex; align-items: center; justify-content: center; }
     #aigetToggle:hover { transform: scale(1.1); }
     #aigetBox { position: fixed; bottom: 88px; left: 20px; width: 400px; height: 690px; max-width: 90vw; max-height: 80vh; border-radius: 16px; overflow: visible; box-shadow: 0 12px 48px rgba(0,0,0,0.22); background: white; z-index: 99999; display: none; }
@@ -44,17 +44,17 @@
     .aiget-resizer-r { top: 0; right: -5px; width: 10px; height: 100%; cursor: e-resize; }
     .aiget-resizer-b { bottom: -5px; left: 0; width: 100%; height: 10px; cursor: s-resize; }
   `;
-      document.head.appendChild(style);
+  document.head.appendChild(style);
 
-      // Create UI
-      const toggle = document.createElement('button');
-      toggle.id = 'aigetToggle';
-      toggle.innerHTML = '💬';
-      document.body.appendChild(toggle);
+  // Create UI
+  const toggle = document.createElement('button');
+  toggle.id = 'aigetToggle';
+  toggle.innerHTML = '💬';
+  document.body.appendChild(toggle);
 
-      const box = document.createElement('div');
-      box.id = 'aigetBox';
-      box.innerHTML = `
+  const box = document.createElement('div');
+  box.id = 'aigetBox';
+  box.innerHTML = `
     <div class="aiget-resizer aiget-resizer-r" data-dir="r"></div>
     <div class="aiget-resizer aiget-resizer-b" data-dir="b"></div>
     <div id="aigetInner">
@@ -89,65 +89,65 @@
       <iframe src="${CHAT_URL}" allow="microphone; camera"></iframe>
     </div>
   `;
-      document.body.appendChild(box);
+  document.body.appendChild(box);
 
-      let isMax = false, preStyles = {}, dragging = false, dragX = 0, dragY = 0, ox = 0, oy = 0;
-      toggle.onclick = () => box.classList.toggle('open');
-      document.getElementById('aigetClose').onclick = () => box.classList.remove('open');
-      document.getElementById('aigetClear').onclick = () => {
-        const frame = box.querySelector('iframe');
-        if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'getrio-request-clear' }, '*');
-      };
-      document.getElementById('aigetOpt').onclick = () => {
-        const btn = document.getElementById('aigetOpt');
-        btn.classList.toggle('active');
-        const frame = box.querySelector('iframe');
-        if (frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'getrio-toggle-options' }, '*');
-      };
+  let isMax = false, preStyles = {}, dragging = false, dragX = 0, dragY = 0, ox = 0, oy = 0;
+  toggle.onclick = () => box.classList.toggle('open');
+  document.getElementById('aigetClose').onclick = () => box.classList.remove('open');
+  document.getElementById('aigetClear').onclick = () => {
+    const frame = box.querySelector('iframe');
+    if(frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'getrio-request-clear' }, '*');
+  };
+  document.getElementById('aigetOpt').onclick = () => {
+    const btn = document.getElementById('aigetOpt');
+    btn.classList.toggle('active');
+    const frame = box.querySelector('iframe');
+    if(frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'getrio-toggle-options' }, '*');
+  };
+  
+  window.addEventListener('message', (e) => {
+    if(e.data && e.data.type === 'getrio-options-closed') {
+      const btn = document.getElementById('aigetOpt');
+      if(btn) btn.classList.remove('active');
+    }
+  });
 
-      window.addEventListener('message', (e) => {
-        if (e.data && e.data.type === 'getrio-options-closed') {
-          const btn = document.getElementById('aigetOpt');
-          if (btn) btn.classList.remove('active');
-        }
-      });
+  document.getElementById('aigetMax').onclick = () => {
+    const btn = document.getElementById('aigetMax');
+    if(!isMax) {
+      preStyles = { w: box.style.width, h: box.style.height, t: box.style.transform, b: box.style.bottom, l: box.style.left };
+      Object.assign(box.style, { width:'100vw', height:'100vh', transform:'none', bottom:'0', left:'0', borderRadius:'0', maxWidth:'100vw', maxHeight:'100vh' });
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="12" height="12" rx="2" ry="2"></rect><path d="M4 8v10a2 2 0 0 0 2 2h10"></path></svg>';
+      btn.title = 'Thu nhỏ';
+      isMax = true;
+    } else {
+      Object.assign(box.style, { width:preStyles.w||'400px', height:preStyles.h||'690px', transform:preStyles.t||'none', bottom:preStyles.b||'88px', left:preStyles.l||'20px', borderRadius:'16px', maxWidth:'90vw', maxHeight:'80vh' });
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>';
+      btn.title = 'Phóng to';
+      isMax = false;
+    }
+  };
 
-      document.getElementById('aigetMax').onclick = () => {
-        const btn = document.getElementById('aigetMax');
-        if (!isMax) {
-          preStyles = { w: box.style.width, h: box.style.height, t: box.style.transform, b: box.style.bottom, l: box.style.left };
-          Object.assign(box.style, { width: '100vw', height: '100vh', transform: 'none', bottom: '0', left: '0', borderRadius: '0', maxWidth: '100vw', maxHeight: '100vh' });
-          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="12" height="12" rx="2" ry="2"></rect><path d="M4 8v10a2 2 0 0 0 2 2h10"></path></svg>';
-          btn.title = 'Thu nhỏ';
-          isMax = true;
-        } else {
-          Object.assign(box.style, { width: preStyles.w || '400px', height: preStyles.h || '690px', transform: preStyles.t || 'none', bottom: preStyles.b || '88px', left: preStyles.l || '20px', borderRadius: '16px', maxWidth: '90vw', maxHeight: '80vh' });
-          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>';
-          btn.title = 'Phóng to';
-          isMax = false;
-        }
-      };
+  document.getElementById('aigetReset').onclick = () => {
+    Object.assign(box.style, { width:'400px', height:'690px', transform:'none', bottom:'88px', left:'20px', borderRadius:'16px', maxWidth:'90vw', maxHeight:'80vh' });
+    ox = 0; oy = 0; isMax = false;
+    const maxBtn = document.getElementById('aigetMax');
+    maxBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>';
+    maxBtn.title = 'Phóng to';
+  };
 
-      document.getElementById('aigetReset').onclick = () => {
-        Object.assign(box.style, { width: '400px', height: '690px', transform: 'none', bottom: '88px', left: '20px', borderRadius: '16px', maxWidth: '90vw', maxHeight: '80vh' });
-        ox = 0; oy = 0; isMax = false;
-        const maxBtn = document.getElementById('aigetMax');
-        maxBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>';
-        maxBtn.title = 'Phóng to';
-      };
-
-      const head = document.getElementById('aigetHeader');
-      head.onmousedown = (e) => {
-        if (isMax || e.target.closest('button')) return;
-        dragging = true; dragX = e.clientX - ox; dragY = e.clientY - oy;
-        head.style.cursor = 'grabbing';
-      };
-      document.onmousemove = (e) => {
-        if (dragging) { ox = e.clientX - dragX; oy = e.clientY - dragY; box.style.transform = `translate3d(${ox}px, ${oy}px, 0)`; }
-      };
-      document.onmouseup = () => { dragging = false; head.style.cursor = 'grab'; };
-    })();
-  </script>
+  const head = document.getElementById('aigetHeader');
+  head.onmousedown = (e) => {
+    if(isMax || e.target.closest('button')) return;
+    dragging = true; dragX = e.clientX - ox; dragY = e.clientY - oy;
+    head.style.cursor = 'grabbing';
+  };
+  document.onmousemove = (e) => {
+    if(dragging) { ox = e.clientX - dragX; oy = e.clientY - dragY; box.style.transform = `translate3d(${ox}px, ${oy}px, 0)`; }
+  };
+  document.onmouseup = () => { dragging = false; head.style.cursor = 'grab'; };
+})();
+</script>
 </body>
 
 </html>
