@@ -43,6 +43,10 @@
     .aiget-resizer { position: absolute; z-index: 100; }
     .aiget-resizer-r { top: 0; right: -5px; width: 10px; height: 100%; cursor: e-resize; }
     .aiget-resizer-b { bottom: -5px; left: 0; width: 100%; height: 10px; cursor: s-resize; }
+    #aigetDropdown { display: none; position: absolute; top: 32px; right: 8px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.12); z-index: 999; min-width: 150px; overflow: hidden; }
+    #aigetDropdown.open { display: block; }
+    #aigetDropdown a { display: block; width: 100%; text-align: left; padding: 10px 16px; background: none; border: none; cursor: pointer; font-size: 13px; color: #374151; transition: background .12s; text-decoration: none; box-sizing: border-box; }
+    #aigetDropdown a:hover { background: #f1f5f9; }
   `;
   document.head.appendChild(style);
 
@@ -69,6 +73,13 @@
               <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>
           </button>
+          <button class="aiget-btn" id="aigetMenu" title="Danh mục">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1" />
+              <circle cx="12" cy="5" r="1" />
+              <circle cx="12" cy="19" r="1" />
+            </svg>
+          </button>
           <button class="aiget-btn" id="aigetClear" title="Xóa cuộc trò chuyện">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
@@ -84,6 +95,9 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
           </button>
           <button class="aiget-btn" id="aigetClose" title="Đóng" style="font-size:18px;">✕</button>
+        </div>
+        <div id="aigetDropdown">
+          <a href="https://aiget.art/chatbot/guide" target="_top">📖 Hướng dẫn</a>
         </div>
       </div>
       <iframe src="${CHAT_URL}" allow="microphone; camera"></iframe>
@@ -105,6 +119,15 @@
     if(frame && frame.contentWindow) frame.contentWindow.postMessage({ type: 'getrio-toggle-options' }, '*');
   };
   
+  const dropdown = document.getElementById('aigetDropdown');
+  document.getElementById('aigetMenu').onclick = (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+  };
+  document.addEventListener('click', () => {
+    if (dropdown) dropdown.classList.remove('open');
+  });
+
   window.addEventListener('message', (e) => {
     if(e.data && e.data.type === 'getrio-options-closed') {
       const btn = document.getElementById('aigetOpt');
@@ -138,7 +161,7 @@
 
   const head = document.getElementById('aigetHeader');
   head.onmousedown = (e) => {
-    if(isMax || e.target.closest('button')) return;
+    if(isMax || e.target.closest('button, #aigetDropdown')) return;
     dragging = true; dragX = e.clientX - ox; dragY = e.clientY - oy;
     head.style.cursor = 'grabbing';
   };
